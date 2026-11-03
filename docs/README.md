@@ -11,9 +11,10 @@
 
 ## 📚 Daftar Isi Dokumentasi
 
-1. [Arsitektur & Ringkasan Sistem](file:///home/technoindo/print-proxy/docs/README.md#arsitektur-sistem)
-2. [Panduan Instalasi & Menjalankan](file:///home/technoindo/print-proxy/docs/README.md#panduan-instalasi--menjalankan)
-3. [Panduan Multi-Kasir & Odoo POS](file:///home/technoindo/print-proxy/docs/MULTI_CASHIER_SETUP.md)
+1. [Arsitektur & Ringkasan Sistem](file:///D:/technonindo-project/printer-proxy-main/docs/README.md#arsitektur-sistem)
+2. [Panduan Instalasi Lengkap di Windows](file:///D:/technonindo-project/printer-proxy-main/docs/PANDUAN_INSTALASI_WINDOWS.md)
+   - Langkah demi langkah instalasi, dependensi, firewall, sertifikat SSL, auto-startup, dan Odoo POS.
+3. [Panduan Multi-Kasir & Odoo POS](file:///D:/technonindo-project/printer-proxy-main/docs/MULTI_CASHIER_SETUP.md)
    - Solusi 1 PC Proxy melayani banyak kasir & banyak printer sekaligus.
    - Cara konfigurasi di menu Odoo POS.
 4. [Kompatibilitas Printer & Koneksi](file:///home/technoindo/print-proxy/docs/PRINTER_COMPATIBILITY.md)
