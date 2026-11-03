@@ -1,0 +1,19 @@
+{
+  "name": "print-proxy",
+  "version": "1.0.0",
+  "description": "Local print proxy/bridge untuk thermal printer (ESC/POS) via USB atau LAN",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test/run-all.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "node-thermal-printer": "^4.4.4",
+    "sax": "^1.4.1",
+    "selfsigned": "^5.5.0",
+    "xml2js": "^0.6.2"
+  }
+}

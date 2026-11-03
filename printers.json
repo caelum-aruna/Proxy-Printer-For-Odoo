@@ -1,0 +1,19 @@
+{
+  "serverPort": 8000,
+  "defaultPrinter": "kasir1",
+  "charsPerLine": 33,
+  "printers": {
+    "kasir1": {
+      "mode": "printer",
+      "target": "EPSON TM-U220",
+      "port": 8001,
+      "type": "epson"
+    },
+    "dotmatrix": {
+      "mode": "standard",
+      "target": "EPSON L220 Series",
+      "port": 8000,
+      "type": "epson"
+    }
+  }
+}

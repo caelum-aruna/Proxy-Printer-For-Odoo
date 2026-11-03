@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Odoo Print Proxy — Hardware Bridge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --card-hover: #ffffff;
+      --border: #e2e8f0;
+      --border-focus: #3b82f6;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --text-subtle: #94a3b8;
+      
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #eff6ff;
+      --primary-border: #bfdbfe;
+      
+      --success: #10b981;
+      --success-light: #ecfdf5;
+      --success-text: #065f46;
+      --success-border: #a7f3d0;
+
+      --amber: #f59e0b;
+      --amber-light: #fffbeb;
+      --amber-text: #92400e;
+      
+      --danger: #ef4444;
+      --danger-light: #fef2f2;
+      --danger-text: #991b1b;
+      --danger-border: #fecaca;
+      
+      --radius: 12px;
+      --radius-sm: 8px;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      padding: 24px 20px 48px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* TOP BAR / HEADER */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      padding-bottom: 20px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+    }
+
+    .brand-icon svg {
+      width: 22px;
+      height: 22px;
+      fill: currentColor;
+    }
+
+    .brand-title h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+
+    .brand-title p {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: #fff;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    .badge-online {
+      color: var(--success-text);
+      background: var(--success-light);
+      border-color: var(--success-border);
+    }
+
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--success);
+      display: inline-block;
+    }
+
+    /* BUTTONS */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.84rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--primary-hover);
+    }
+
+    .btn-outline {
+      background: #ffffff;
+      color: var(--text);
+      border-color: var(--border);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn-outline:hover:not(:disabled) {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+    }
+
+    .btn-danger-outline {
+      background: #ffffff;
+      color: var(--danger);
+      border-color: var(--danger-border);
+    }
+
+    .btn-danger-outline:hover:not(:disabled) {
+      background: var(--danger-light);
+    }
+
+    .btn-sm {
+      padding: 5px 10px;
+      font-size: 0.78rem;
+    }
+
+    /* STATS STRIP */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .stat-card .label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .stat-card .val {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-top: 4px;
+    }
+
+    .stat-card .sub {
+      font-size: 0.76rem;
+      color: var(--text-subtle);
+      margin-top: 2px;
+    }
+
+    /* SECTION HEADERS */
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .section-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* EMPTY STATE */
+    .empty-state {
+      background: var(--card);
+      border: 1.5px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 40px 24px;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .empty-state-icon {
+      font-size: 2.2rem;
+      margin-bottom: 12px;
+    }
+
+    .empty-state h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .empty-state p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      max-width: 440px;
+      margin: 0 auto 18px;
+    }
+
+    /* PRINTERS GRID */
+    .printers-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .printer-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.15s ease;
+    }
+
+    .printer-card:hover {
+      border-color: #cbd5e1;
+      box-shadow: var(--shadow);
+    }
+
+    .printer-card.is-default {
+      border-color: var(--primary-border);
+      background: linear-gradient(180deg, #f8faff 0%, #ffffff 100%);
+    }
+
+    .printer-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .printer-title-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .printer-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .pill-default {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--primary);
+      background: var(--primary-light);
+      padding: 2px 8px;
+      border-radius: 9999px;
+      border: 1px solid var(--primary-border);
+    }
+
+    .meta-list {
+      margin-bottom: 16px;
+      font-size: 0.82rem;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .meta-item {
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-muted);
+    }
+
+    .meta-item span.val {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text);
+      font-size: 0.8rem;
+      font-weight: 500;
+      max-width: 190px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .ip-box {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .ip-box-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .ip-box-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      padding-top: 12px;
+      border-top: 1px solid #f1f5f9;
+    }
+
+    /* SCAN HARDWARE PANEL */
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .panel-header {
+      margin-bottom: 14px;
+    }
+
+    .panel-header h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .panel-header p {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .scan-buttons {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .detected-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .detected-item {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .detected-info h4 {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .detected-info p {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      margin-top: 2px;
+    }
+
+    /* TEST & TOOLS SECTION */
+    .tools-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .tools-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 8px 12px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.85rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .console-log {
+      background: #0f172a;
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      height: 180px;
+      overflow-y: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: #94a3b8;
+    }
+
+    .console-log .line {
+      margin-bottom: 3px;
+    }
+    .console-log .line.success { color: #34d399; }
+    .console-log .line.error { color: #f87171; }
+    .console-log .line.info { color: #60a5fa; }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(15, 23, 42, 0.4);
+      backdrop-filter: blur(2px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      padding: 16px;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 480px;
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+      animation: modalFadeIn 0.15s ease-out;
+    }
+
+    @keyframes modalFadeIn {
+      from { transform: scale(0.97); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: var(--text-subtle);
+      font-size: 1.3rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .modal-close:hover { color: var(--text); }
+
+    .modal-body {
+      padding: 20px;
+    }
+
+    .modal-footer {
+      padding: 12px 20px;
+      border-top: 1px solid var(--border);
+      background: #f8fafc;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .quick-preset-btns {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+
+    .quick-preset-btn {
+      flex: 1;
+      padding: 6px 10px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: #ffffff;
+      color: var(--text);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+    }
+
+    .quick-preset-btn:hover {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+    }
+
+    .quick-preset-btn.active {
+      background: var(--primary-light);
+      border-color: var(--primary-border);
+      color: var(--primary);
+    }
+
+    /* TOAST */
+    #toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      background: #0f172a;
+      color: #ffffff;
+      font-size: 0.84rem;
+      font-weight: 500;
+      box-shadow: var(--shadow-lg);
+      display: none;
+      align-items: center;
+      gap: 8px;
+      z-index: 1000;
+    }
+
+    #toast.show {
+      display: flex;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <!-- HEADER -->
+    <header>
+      <div class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/>
+          </svg>
+        </div>
+        <div class="brand-title">
+          <h1>Print Proxy Manager</h1>
+          <p>Pengaturan Printer Kasir & Dotmatrix</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <span class="badge badge-online">
+          <span class="pulse-dot"></span> Online
+        </span>
+        <span class="badge" id="osBadge">OS: -</span>
+        <span class="badge" id="portBadge">Port: 8000</span>
+        <button class="btn btn-outline btn-sm" id="btnRefresh" title="Segarkan Data">
+          🔄 Refresh
+        </button>
+      </div>
+    </header>
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="label">Printer Terdaftar</div>
+        <div class="val" id="statPrinterCount">0</div>
+        <div class="sub">Total perangkat aktif</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Default Printer</div>
+        <div class="val" id="statDefaultPrinter" style="font-size: 1.1rem;">-</div>
+        <div class="sub">Otomatis dipakai jika tidak ditentukan</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">IP Komputer Ini</div>
+        <div class="val" id="statPrimaryIp" style="font-size: 1.05rem; font-family: 'JetBrains Mono', monospace;">-</div>
+        <div class="sub">Alamat koneksi POS Odoo</div>
+      </div>
+    </div>
+
+    <!-- DAFTAR PRINTER -->
+    <div class="section-header">
+      <div class="section-title">
+        🖨️ Printer yang Siap Digunakan
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn btn-primary btn-sm" id="btnAddPrinter">
+          ➕ Tambah Printer Manual
+        </button>
+      </div>
+    </div>
+
+    <!-- PRINTERS CONTAINER -->
+    <div id="printersContainer">
+      <div class="printers-grid" id="printersList"></div>
+    </div>
+
+    <!-- EMPTY STATE JIKA PRINTER KOSONG -->
+    <div class="empty-state" id="emptyStateBox" style="display: none;">
+      <div class="empty-state-icon">🖨️</div>
+      <h3>Belum Ada Printer yang Dipilih</h3>
+      <p>Proxy saat ini berjalan dalam mode bersih. Silakan scan printer yang terhubung atau klik tombol tambah di bawah untuk memilih printer kasir maupun dotmatrix.</p>
+      <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+        <button class="btn btn-primary" onclick="scanPrinters(false)">
+          🔍 Scan Printer Sekarang
+        </button>
+        <button class="btn btn-outline" onclick="openPrinterModal()">
+          ➕ Tambah Manual
+        </button>
+      </div>
+    </div>
+
+    <!-- SCAN HARDWARE PANEL -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2>Deteksi Otomatis Hardware Printer</h2>
+        <p>Pindai printer yang terhubung via kabel USB / Windows Spooler / CUPS atau scan printer LAN.</p>
+      </div>
+
+      <div class="scan-buttons">
+        <button class="btn btn-primary btn-sm" id="btnScanUsb">
+          🔍 Scan Printer USB / Spooler Lokal
+        </button>
+        <button class="btn btn-outline btn-sm" id="btnScanLan">
+          🌐 Scan Jaringan LAN (Port 9100)
+        </button>
+      </div>
+
+      <div id="detectResults" class="detected-list">
+        <div style="font-size: 0.82rem; color: var(--text-muted); padding: 8px 0;">
+          Klik tombol scan di atas untuk melihat printer yang terdeteksi di komputer ini.
+        </div>
+      </div>
+    </div>
+
+    <!-- TEST & LOG TOOLS -->
+    <div class="tools-grid">
+      <!-- TEST PRINT -->
+      <div class="panel" style="margin-bottom: 0;">
+        <div class="panel-header">
+          <h2>Uji Coba Cetak (Test Print)</h2>
+          <p>Pastikan printer merespon sebelum digunakan di kasir.</p>
+        </div>
+
+        <div class="form-group">
+          <label for="testPrinterSelect">Pilih Printer Target</label>
+          <select id="testPrinterSelect">
+            <option value="">(Belum ada printer)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="testTextInput">Pesan Tes (Opsional)</label>
+          <input type="text" id="testTextInput" placeholder="Kosongkan untuk cetak struk tes standar">
+        </div>
+
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button class="btn btn-primary btn-sm" id="btnRunTestPrint">
+            🖨️ Test Print
+          </button>
+          <button class="btn btn-outline btn-sm" id="btnOpenDrawer">
+            💵 Test Buka Laci
+          </button>
+          <button class="btn btn-danger-outline btn-sm" id="btnClearQueue" title="Batalkan antrean cetak jika spooler macet di Windows">
+            🧹 Bersihkan Antrean Spooler
+          </button>
+        </div>
+      </div>
+
+      <!-- LOG AKTIVITAS -->
+      <div class="panel" style="margin-bottom: 0;">
+        <div class="panel-header">
+          <h2>Log Aktivitas</h2>
+          <p>Catatan komunikasi pengiriman cetak.</p>
+        </div>
+        <div class="console-log" id="consoleBox">
+          <div class="line info">[Ready] Dashboard Print Proxy siap digunakan.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL TAMBAH / EDIT PRINTER -->
+  <div id="printerModal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modalTitle">Tambah Printer</h3>
+        <button class="modal-close" id="btnModalClose">&times;</button>
+      </div>
+      <form id="printerForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Pilihan Cepat Jenis Printer</label>
+            <div class="quick-preset-btns">
+              <button type="button" class="quick-preset-btn" onclick="applyPreset('kasir')">🛒 Kasir Thermal</button>
+              <button type="button" class="quick-preset-btn" onclick="applyPreset('dotmatrix')">📄 Dotmatrix Asli</button>
+              <button type="button" class="quick-preset-btn" onclick="applyPreset('standard')">🖨️ Printer Biasa / GDI</button>
+              <button type="button" class="quick-preset-btn" onclick="applyPreset('dapur')">🍳 Dapur LAN</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="formPrinterName">Nama Printer / Profil *</label>
+            <input type="text" id="formPrinterName" required placeholder="misal: kasir1, dotmatrix, kasir_depan">
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div class="form-group">
+              <label for="formPrinterMode">Tipe Koneksi / Engine *</label>
+              <select id="formPrinterMode" required>
+                <option value="printer">Windows Spooler / CUPS (Auto)</option>
+                <option value="standard">Printer Biasa / GDI (Canon/Epson L/HP/PDF)</option>
+                <option value="usb">USB Direct (Linux /dev/usb/lp*)</option>
+                <option value="lan">LAN Network (IP:Port)</option>
+                <option value="bluetooth">Bluetooth / Serial</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="formPrinterType">Protokol</label>
+              <select id="formPrinterType">
+                <option value="epson">EPSON (Standar)</option>
+                <option value="star">STAR</option>
+                <option value="brother">BROTHER</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <label for="formPrinterTarget" style="margin: 0;">Target Hardware / Nama di Windows *</label>
+              <button type="button" class="btn btn-outline btn-sm" id="btnPickWindows" onclick="populateWindowsPrintersList()" style="padding: 2px 8px; font-size: 0.72rem;">
+                🔍 Pilih dari Windows
+              </button>
+            </div>
+            <input type="text" id="formPrinterTarget" required placeholder="misal: EPSON TM-T82, Canon G2000, atau /dev/usb/lp0">
+            <select id="selectDetectedWindowsPrinter" style="display:none; margin-top:6px; font-size: 0.82rem;" onchange="if(this.value){ document.getElementById('formPrinterTarget').value = this.value; if(!document.getElementById('formPrinterName').value){ document.getElementById('formPrinterName').value = this.value; } document.getElementById('formPrinterMode').value = 'printer'; }"></select>
+            <small style="color: var(--text-muted); font-size: 0.73rem;">Di Windows: pilih atau ketik nama printer persis seperti di Settings/Devices & Printers.</small>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div class="form-group">
+              <label for="formPrinterPort">Port Odoo (Opsional)</label>
+              <input type="number" id="formPrinterPort" placeholder="Otomatis (mis. 8001)">
+            </div>
+            <div class="form-group" style="display: flex; align-items: center; padding-top: 20px;">
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.82rem; text-transform: none; color: var(--text);">
+                <input type="checkbox" id="formPrinterDefault" style="width: auto; margin: 0;">
+                Jadikan Default
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline btn-sm" id="btnModalCancel">Batal</button>
+          <button type="submit" class="btn btn-primary btn-sm" id="btnModalSave">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast"></div>
+
+  <script>
+    let printersData = [];
+    let defaultPrinterName = "";
+
+    function logConsole(msg, type = "info") {
+      const box = document.getElementById("consoleBox");
+      const time = new Date().toLocaleTimeString("id-ID");
+      const line = document.createElement("div");
+      line.className = `line ${type}`;
+      line.textContent = `[${time}] ${msg}`;
+      box.appendChild(line);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      toast.textContent = msg;
+      toast.className = "show";
+      setTimeout(() => { toast.className = ""; }, 3200);
+    }
+
+    async function loadSystemData() {
+      try {
+        const sysRes = await fetch("/system-info");
+        const sys = await sysRes.json();
+        document.getElementById("osBadge").textContent = `OS: ${sys.os ? sys.os.toUpperCase() : '-'}`;
+        document.getElementById("portBadge").textContent = `Port: ${sys.port || 8000}`;
+        document.getElementById("statPrimaryIp").textContent = sys.primaryIp || "localhost";
+
+        const prnRes = await fetch("/printers");
+        const data = await prnRes.json();
+        printersData = data.printers || [];
+        defaultPrinterName = data.defaultPrinter || "";
+
+        document.getElementById("statPrinterCount").textContent = printersData.length;
+        document.getElementById("statDefaultPrinter").textContent = defaultPrinterName || "(Belum ada)";
+
+        renderPrintersList();
+        renderTestSelect();
+      } catch (err) {
+        logConsole(`Gagal memuat status: ${err.message}`, "error");
+      }
+    }
+
+    function renderPrintersList() {
+      const container = document.getElementById("printersList");
+      const emptyBox = document.getElementById("emptyStateBox");
+      container.innerHTML = "";
+
+      if (printersData.length === 0) {
+        emptyBox.style.display = "block";
+        return;
+      }
+
+      emptyBox.style.display = "none";
+
+      printersData.forEach(p => {
+        const card = document.createElement("div");
+        card.className = `printer-card ${p.isDefault ? 'is-default' : ''}`;
+
+        const targetStr = typeof p.target === "object" ? `${p.target.address}:${p.target.port}` : p.target;
+        const odooIp = p.odooProxyIp || `${window.location.hostname}:${p.port || 8000}`;
+
+        card.innerHTML = `
+          <div>
+            <div class="printer-card-top">
+              <div class="printer-title-group">
+                <span class="printer-name">${p.name}</span>
+                ${p.isDefault ? '<span class="pill-default">Default</span>' : ''}
+              </div>
+              <span class="badge" style="font-size: 0.7rem;">${p.mode.toUpperCase()}</span>
+            </div>
+
+            <div class="meta-list">
+              <div class="meta-item">
+                <span>Target Hardware:</span>
+                <span class="val" title="${targetStr}">${targetStr}</span>
+              </div>
+              <div class="meta-item">
+                <span>Port Odoo:</span>
+                <span class="val">${p.port ? p.port : 'Mengikuti Port Utama (8000)'}</span>
+              </div>
+            </div>
+
+            <div class="ip-box">
+              <div>
+                <div class="ip-box-label">Odoo POS IP</div>
+                <div class="ip-box-val">${odooIp}</div>
+              </div>
+              <button class="btn btn-outline btn-sm" onclick="copyProxyIp('${odooIp}')" title="Salin IP untuk Odoo">
+                📋 Salin
+              </button>
+            </div>
+          </div>
+
+          <div class="card-actions">
+            <button class="btn btn-primary btn-sm" onclick="testPrintSpecific('${p.name}')">
+              🖨️ Test Print
+            </button>
+            ${!p.isDefault ? `
+              <button class="btn btn-outline btn-sm" onclick="setDefaultPrinter('${p.name}')">
+                ⭐ Set Default
+              </button>
+            ` : ''}
+            <button class="btn btn-danger-outline btn-sm" onclick="deletePrinterConfirm('${p.name}')">
+              🗑️ Hapus
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    window.copyProxyIp = function(text) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          showToast(`Disalin: ${text}`);
+          logConsole(`Disalin: ${text}`, "info");
+        }).catch(() => {
+          prompt("Salin manual:", text);
+        });
+      } else {
+        prompt("Salin manual:", text);
+      }
+    };
+
+    function renderTestSelect() {
+      const sel = document.getElementById("testPrinterSelect");
+      sel.innerHTML = "";
+      if (printersData.length === 0) {
+        sel.innerHTML = '<option value="">(Belum ada printer)</option>';
+        return;
+      }
+      printersData.forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p.name;
+        opt.textContent = `${p.name} (${p.mode}) ${p.isDefault ? '★ Default' : ''}`;
+        if (p.isDefault) opt.selected = true;
+        sel.appendChild(opt);
+      });
+    }
+
+    // Modal
+    function openPrinterModal(prefill = {}) {
+      const modal = document.getElementById("printerModal");
+      document.getElementById("formPrinterName").value = prefill.name || "";
+      document.getElementById("formPrinterMode").value = prefill.mode || "usb";
+      document.getElementById("formPrinterTarget").value = prefill.target || "";
+      document.getElementById("formPrinterType").value = prefill.type || "epson";
+      document.getElementById("formPrinterDefault").checked = Boolean(prefill.makeDefault || printersData.length === 0);
+
+      const portInput = document.getElementById("formPrinterPort");
+      if (prefill.port) {
+        portInput.value = prefill.port;
+      } else {
+        fetch("/printers/next-port")
+          .then(r => r.json())
+          .then(j => { portInput.value = j.nextPort || 8001; })
+          .catch(() => { portInput.value = 8001; });
+      }
+
+      modal.classList.add("show");
+      document.getElementById("formPrinterName").focus();
+    }
+
+    function closePrinterModal() {
+      document.getElementById("printerModal").classList.remove("show");
+    }
+
+    function applyPreset(type) {
+      const nameInput = document.getElementById("formPrinterName");
+      const modeSelect = document.getElementById("formPrinterMode");
+      const targetInput = document.getElementById("formPrinterTarget");
+
+      if (type === 'kasir') {
+        nameInput.value = "kasir1";
+        modeSelect.value = "usb";
+        targetInput.placeholder = "misal: POS-80 atau EPSON TM-T82";
+      } else if (type === 'dotmatrix') {
+        nameInput.value = "dotmatrix";
+        modeSelect.value = "printer";
+        targetInput.placeholder = "misal: EPSON LQ-310 ESC/P2";
+      } else if (type === 'standard') {
+        nameInput.value = "dotmatrix_gdi";
+        modeSelect.value = "standard";
+        targetInput.placeholder = "misal: Canon G2000, EPSON L3210, atau Microsoft Print to PDF";
+      } else if (type === 'dapur') {
+        nameInput.value = "dapur";
+        modeSelect.value = "lan";
+        targetInput.placeholder = "192.168.1.100:9100";
+      }
+    }
+
+    window.populateWindowsPrintersList = async function() {
+      const sel = document.getElementById("selectDetectedWindowsPrinter");
+      sel.innerHTML = "<option value=''>Memindai printer lokal...</option>";
+      sel.style.display = "block";
+      try {
+        const res = await fetch("/printers/detect");
+        const data = await res.json();
+        const list = data.all || [];
+        sel.innerHTML = "<option value=''>-- Pilih printer terdeteksi --</option>";
+        if (list.length === 0) {
+          sel.innerHTML = "<option value=''>Tidak ada printer lokal terdeteksi</option>";
+          return;
+        }
+        list.forEach(item => {
+          const opt = document.createElement("option");
+          opt.value = item.target;
+          opt.textContent = `${item.name} (${item.mode.toUpperCase()})`;
+          sel.appendChild(opt);
+        });
+      } catch (err) {
+        sel.innerHTML = `<option value=''>Gagal deteksi: ${err.message}</option>`;
+      }
+    };
+
+    document.getElementById("btnAddPrinter").addEventListener("click", () => openPrinterModal());
+    document.getElementById("btnModalClose").addEventListener("click", closePrinterModal);
+    document.getElementById("btnModalCancel").addEventListener("click", closePrinterModal);
+
+    document.getElementById("printerForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = document.getElementById("formPrinterName").value.trim();
+      const mode = document.getElementById("formPrinterMode").value;
+      const target = document.getElementById("formPrinterTarget").value.trim();
+      const port = document.getElementById("formPrinterPort").value ? parseInt(document.getElementById("formPrinterPort").value, 10) : null;
+      const type = document.getElementById("formPrinterType").value;
+      const makeDefault = document.getElementById("formPrinterDefault").checked;
+
+      if (!name || !target) {
+        alert("Nama dan target printer wajib diisi!");
+        return;
+      }
+
+      logConsole(`Menyimpan printer '${name}'...`);
+      try {
+        let finalTarget = target;
+        if (mode === "lan" && target.includes(":")) {
+          const parts = target.split(":");
+          finalTarget = { address: parts[0], port: parseInt(parts[1], 10) };
+        }
+
+        const res = await fetch("/printers", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, mode, target: finalTarget, port, type, makeDefault })
+        });
+        const json = await res.json();
+        if (json.success) {
+          showToast(`Printer '${name}' berhasil disimpan`);
+          logConsole(`Printer '${name}' aktif.`, "success");
+          closePrinterModal();
+          await loadSystemData();
+        } else {
+          showToast(json.error || "Gagal menyimpan");
+          logConsole(`Gagal: ${json.error}`, "error");
+        }
+      } catch (err) {
+        showToast(err.message);
+        logConsole(`Error: ${err.message}`, "error");
+      }
+    });
+
+    window.deletePrinterConfirm = async function(name) {
+      if (!confirm(`Hapus printer '${name}'?`)) return;
+      try {
+        const res = await fetch(`/printers/${encodeURIComponent(name)}`, { method: "DELETE" });
+        const json = await res.json();
+        if (json.success) {
+          showToast(`Printer '${name}' dihapus`);
+          logConsole(`Printer '${name}' dihapus.`, "info");
+          await loadSystemData();
+        }
+      } catch (err) {
+        showToast(err.message);
+      }
+    };
+
+    window.setDefaultPrinter = async function(name) {
+      try {
+        const res = await fetch(`/printers/${encodeURIComponent(name)}/default`, { method: "POST" });
+        const json = await res.json();
+        if (json.success) {
+          showToast(`Default printer diubah ke '${name}'`);
+          await loadSystemData();
+        }
+      } catch (err) {
+        showToast(err.message);
+      }
+    };
+
+    window.testPrintSpecific = async function(printerName) {
+      logConsole(`Mengirim test print ke '${printerName}'...`);
+      try {
+        const res = await fetch("/printers/test", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ printer: printerName })
+        });
+        const json = await res.json();
+        if (json.success) {
+          showToast(json.message);
+          logConsole(json.message, "success");
+        } else {
+          showToast(json.error || "Gagal test print");
+          logConsole(`Gagal cetak: ${json.error}`, "error");
+        }
+      } catch (err) {
+        showToast(err.message);
+        logConsole(`Error: ${err.message}`, "error");
+      }
+    };
+
+    // Scan
+    async function scanPrinters(scanLan = false) {
+      const container = document.getElementById("detectResults");
+      const btn = scanLan ? document.getElementById("btnScanLan") : document.getElementById("btnScanUsb");
+      const origText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = "Memindai...";
+
+      container.innerHTML = `<div style="font-size: 0.82rem; color: var(--text-muted); padding: 8px 0;">Sedang mencari printer yang terhubung...</div>`;
+      logConsole(`Memulai pemindaian (${scanLan ? 'USB & LAN' : 'USB / Lokal'})...`);
+
+      try {
+        const url = scanLan ? "/printers/detect?scan_lan=true" : "/printers/detect";
+        const res = await fetch(url);
+        const data = await res.json();
+
+        container.innerHTML = "";
+        const list = data.all || [];
+
+        if (list.length === 0) {
+          container.innerHTML = `<div style="color: var(--amber-text); font-size: 0.82rem; padding: 6px 0;">Tidak ada perangkat baru ditemukan. Pastikan kabel USB terpasang atau printer menyala.</div>`;
+          logConsole("Scan selesai: tidak ada perangkat ditemukan.", "info");
+        } else {
+          list.forEach(item => {
+            const row = document.createElement("div");
+            row.className = "detected-item";
+            const targetStr = typeof item.target === "object" ? `${item.target.address}:${item.target.port}` : item.target;
+
+            row.innerHTML = `
+              <div class="detected-info">
+                <h4>🖨️ ${item.name}</h4>
+                <p>Target: ${targetStr} • Mode: ${item.mode.toUpperCase()}</p>
+              </div>
+              <div style="display: flex; gap: 6px;">
+                <button class="btn btn-primary btn-sm" onclick="pickAsPrinter('${item.name.replace(/'/g, "\\'")}', '${item.mode}', '${targetStr.replace(/'/g, "\\'")}', 'kasir')">
+                  Pilih Jadi Kasir
+                </button>
+                <button class="btn btn-outline btn-sm" onclick="pickAsPrinter('${item.name.replace(/'/g, "\\'")}', '${item.mode}', '${targetStr.replace(/'/g, "\\'")}', 'dotmatrix')">
+                  Pilih Jadi Dotmatrix
+                </button>
+              </div>
+            `;
+            container.appendChild(row);
+          });
+          logConsole(`Scan selesai: Ditemukan ${list.length} printer.`, "success");
+          showToast(`Ditemukan ${list.length} printer!`);
+        }
+      } catch (err) {
+        container.innerHTML = `<div style="color: var(--danger-text); font-size: 0.82rem;">Gagal scan: ${err.message}</div>`;
+        logConsole(`Error scan: ${err.message}`, "error");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = origText;
+      }
+    }
+
+    window.pickAsPrinter = function(detectedName, mode, target, category) {
+      const cleanName = category === 'dotmatrix' ? 'dotmatrix' : (printersData.some(p => p.name === 'kasir1') ? 'kasir2' : 'kasir1');
+      openPrinterModal({
+        name: cleanName,
+        mode: mode,
+        target: target,
+        makeDefault: printersData.length === 0 || category === 'kasir'
+      });
+    };
+
+    // Test studio buttons
+    document.getElementById("btnRunTestPrint").addEventListener("click", () => {
+      const sel = document.getElementById("testPrinterSelect");
+      const printer = sel.value;
+      if (!printer) {
+        alert("Pilih printer target terlebih dahulu!");
+        return;
+      }
+      const customText = document.getElementById("testTextInput").value.trim();
+      if (customText) {
+        logConsole(`Mencetak teks ke '${printer}'...`);
+        fetch("/print/text", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ printer, text: customText })
+        }).then(r => r.json()).then(j => {
+          if (j.success) {
+            showToast("Teks berhasil dicetak!");
+            logConsole("Teks berhasil dicetak.", "success");
+          } else {
+            showToast(j.error || "Gagal mencetak");
+            logConsole(`Gagal: ${j.error}`, "error");
+          }
+        });
+      } else {
+        testPrintSpecific(printer);
+      }
+    });
+
+    document.getElementById("btnOpenDrawer").addEventListener("click", async () => {
+      const sel = document.getElementById("testPrinterSelect");
+      const printer = sel.value;
+      if (!printer) {
+        alert("Pilih printer target terlebih dahulu!");
+        return;
+      }
+      try {
+        const res = await fetch("/printers/cashbox", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ printer })
+        });
+        const json = await res.json();
+        if (json.success) {
+          showToast(json.message);
+          logConsole(json.message, "success");
+        } else {
+          showToast(json.error);
+          logConsole(`Gagal buka laci: ${json.error}`, "error");
+        }
+      } catch (err) {
+        showToast(err.message);
+      }
+    });
+
+    document.getElementById("btnClearQueue").addEventListener("click", async () => {
+      if (!confirm("Bersihkan antrean spooler cetak yang macet di OS?")) return;
+      try {
+        logConsole("Membersihkan antrean print spooler...");
+        const res = await fetch("/printers/clear-queue", { method: "POST" });
+        const json = await res.json();
+        showToast(json.message || "Antrean dibersihkan");
+        logConsole(json.message || "Antrean dibersihkan", json.success ? "success" : "error");
+      } catch (err) {
+        showToast(err.message);
+        logConsole(`Error bersihkan antrean: ${err.message}`, "error");
+      }
+    });
+
+    document.getElementById("btnScanUsb").addEventListener("click", () => scanPrinters(false));
+    document.getElementById("btnScanLan").addEventListener("click", () => scanPrinters(true));
+    document.getElementById("btnRefresh").addEventListener("click", () => {
+      loadSystemData();
+      showToast("Data diperbarui");
+    });
+
+    loadSystemData();
+  </script>
+</body>
+
+</html>
